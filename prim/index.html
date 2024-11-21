@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maze Generator - Prim's Algorithm</title>
+    <title>Maze Generator (Kruskal's Algorithm)</title>
     <style>
         body {
             display: flex;
@@ -27,49 +27,109 @@
         const ctx = canvas.getContext("2d");
 
         // Maze settings
-        const cols = 20;
-        const rows = 20;
+        const cols = 20; // Number of columns
+        const rows = 20; // Number of rows
         const cellSize = 30;
 
         canvas.width = cols * cellSize;
         canvas.height = rows * cellSize;
 
+        // Initialize the maze grid
         const grid = [];
-        const walls = [];
+        const edges = [];
+        const sets = [];
 
         class Cell {
             constructor(col, row) {
                 this.col = col;
                 this.row = row;
-                this.visited = false;
+                this.walls = { top: true, right: true, bottom: true, left: true };
+                this.id = col + row * cols; // Unique ID for union-find
             }
 
             draw() {
                 const x = this.col * cellSize;
                 const y = this.row * cellSize;
 
-                if (!this.visited) {
-                    ctx.fillStyle = "#000"; // Unvisited cells appear black
-                    ctx.fillRect(x, y, cellSize, cellSize);
-                }
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 2;
+
+                // Draw walls
+                if (this.walls.top) ctx.strokeRect(x, y, cellSize, 0);
+                if (this.walls.right) ctx.strokeRect(x + cellSize, y, 0, cellSize);
+                if (this.walls.bottom) ctx.strokeRect(x, y + cellSize, cellSize, 0);
+                if (this.walls.left) ctx.strokeRect(x, y, 0, cellSize);
             }
         }
 
-        // Initialize grid
+        // Initialize grid cells and edges
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
-                grid.push(new Cell(col, row));
+                const cell = new Cell(col, row);
+                grid.push(cell);
+
+                // Initialize disjoint sets
+                sets[cell.id] = cell.id;
+
+                // Create edges between adjacent cells
+                if (col > 0) edges.push([cell, grid[(row * cols) + col - 1], "left"]);
+                if (row > 0) edges.push([cell, grid[((row - 1) * cols) + col], "top"]);
             }
         }
 
-        // Helper function to get a cell
-        function getCell(col, row) {
-            if (col < 0 || row < 0 || col >= cols || row >= rows) {
-                return null;
+        // Shuffle edges for randomness
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-            return grid[col + row * cols];
+            return array;
         }
 
-        // Helper function to remove walls between two cells
-        function removeWallBetween(a, b) {
-            const x = a.col - b
+        shuffle(edges);
+
+        // Union-Find helpers
+        function find(set, x) {
+            if (set[x] !== x) {
+                set[x] = find(set, set[x]);
+            }
+            return set[x];
+        }
+
+        function union(set, a, b) {
+            const rootA = find(set, a);
+            const rootB = find(set, b);
+            if (rootA !== rootB) {
+                set[rootB] = rootA;
+            }
+        }
+
+        // Kruskal's Algorithm
+        function generateMaze() {
+            edges.forEach(edge => {
+                const [cell1, cell2, direction] = edge;
+
+                // Check if the cells are in different sets
+                if (find(sets, cell1.id) !== find(sets, cell2.id)) {
+                    // Remove the wall between them
+                    if (direction === "left") {
+                        cell1.walls.left = false;
+                        cell2.walls.right = false;
+                    } else if (direction === "top") {
+                        cell1.walls.top = false;
+                        cell2.walls.bottom = false;
+                    }
+
+                    // Union the sets
+                    union(sets, cell1.id, cell2.id);
+                }
+            });
+
+            // Draw the maze
+            grid.forEach(cell => cell.draw());
+        }
+
+        generateMaze();
+    </script>
+</body>
+</html>

@@ -9,7 +9,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             height: 100vh;
             margin: 0;
             background-color: #f4f4f4;
@@ -18,40 +17,10 @@
             border: 2px solid #000;
             background-color: #fff;
         }
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 10px;
-        }
-        .controls button {
-            width: 50px;
-            height: 50px;
-            margin: 5px;
-            font-size: 20px;
-        }
-        .up, .down, .left, .right {
-            background-color: #ccc;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <canvas id="maze" width="400" height="400"></canvas>
-    <div class="controls">
-        <div>
-            <button class="up" onclick="movePlayer(0, -1)">↑</button>
-        </div>
-        <div>
-            <button class="left" onclick="movePlayer(-1, 0)">←</button>
-            <button class="right" onclick="movePlayer(1, 0)">→</button>
-        </div>
-        <div>
-            <button class="down" onclick="movePlayer(0, 1)">↓</button>
-        </div>
-    </div>
     <script>
         const canvas = document.getElementById('maze');
         const ctx = canvas.getContext('2d');
@@ -60,33 +29,48 @@
         const rows = 10;
         const cols = 10;
 
-        // Maze layout (1: wall, 0: path)
-        const maze = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
-            [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
-            [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
-            [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-            [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-            [1, 0, 1, 1, 0, 0, 0, 1, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        // Directions for movement (right, left, down, up)
+        const directions = [
+            { dx: 1, dy: 0 },
+            { dx: -1, dy: 0 },
+            { dx: 0, dy: 1 },
+            { dx: 0, dy: -1 },
         ];
 
         // Player and goal positions
         const player = { x: 1, y: 1 }; // Start position
-        const goal = { x: 8, y: 8 }; // Goal position
+        const goal = { x: cols - 2, y: rows - 2 }; // Goal position
+
+        // Maze array (0: path, 1: wall)
+        let maze = Array.from({ length: rows }, () => Array(cols).fill(1));
+
+        // Recursive backtracking algorithm to generate the maze
+        function generateMaze(x, y) {
+            maze[y][x] = 0; // Mark the current cell as a path
+            const shuffledDirections = directions.sort(() => Math.random() - 0.5); // Randomize directions
+
+            for (const { dx, dy } of shuffledDirections) {
+                const nx = x + dx * 2; // Move two steps in the x direction
+                const ny = y + dy * 2; // Move two steps in the y direction
+
+                if (nx > 0 && ny > 0 && nx < cols - 1 && ny < rows - 1 && maze[ny][nx] === 1) {
+                    maze[y + dy][x + dx] = 0; // Knock down the wall between cells
+                    generateMaze(nx, ny); // Recursively generate the maze
+                }
+            }
+        }
+
+        // Initialize maze generation
+        function initializeMaze() {
+            maze = Array.from({ length: rows }, () => Array(cols).fill(1)); // Reset maze
+            generateMaze(1, 1); // Start from the top-left corner
+        }
 
         // Draw the maze
         function drawMaze() {
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
-                    if (maze[row][col] === 1) {
-                        ctx.fillStyle = 'black'; // Wall color
-                    } else {
-                        ctx.fillStyle = 'white'; // Path color
-                    }
+                    ctx.fillStyle = maze[row][col] === 1 ? 'black' : 'white';
                     ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
                 }
             }
@@ -118,16 +102,34 @@
                 alert('You reached the goal!');
                 resetGame();
             }
-
-            drawGame();
         }
 
         // Reset game
         function resetGame() {
             player.x = 1;
             player.y = 1;
+            initializeMaze();
             drawGame();
         }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                    movePlayer(1, 0);
+                    break;
+            }
+            drawGame();
+        });
 
         // Draw the game
         function drawGame() {
@@ -136,6 +138,7 @@
         }
 
         // Initialize game
+        initializeMaze();
         drawGame();
     </script>
 </body>

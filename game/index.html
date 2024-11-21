@@ -9,6 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             height: 100vh;
             margin: 0;
             background-color: #f4f4f4;
@@ -17,113 +18,125 @@
             border: 2px solid #000;
             background-color: #fff;
         }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .controls button {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            font-size: 20px;
+        }
+        .up, .down, .left, .right {
+            background-color: #ccc;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <canvas id="maze" width="400" height="400"></canvas>
+    <div class="controls">
+        <div>
+            <button class="up" onclick="movePlayer(0, -1)">↑</button>
+        </div>
+        <div>
+            <button class="left" onclick="movePlayer(-1, 0)">←</button>
+            <button class="right" onclick="movePlayer(1, 0)">→</button>
+        </div>
+        <div>
+            <button class="down" onclick="movePlayer(0, 1)">↓</button>
+        </div>
+    </div>
     <script>
         const canvas = document.getElementById('maze');
-const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
 
-const tileSize = 40; // Size of each maze tile
-const rows = 10;
-const cols = 10;
+        const tileSize = 40; // Size of each maze tile
+        const rows = 10;
+        const cols = 10;
 
-// Maze layout (1: wall, 0: path)
-const maze = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 0, 0, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-];
+        // Maze layout (1: wall, 0: path)
+        const maze = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 0, 1, 0, 1],
+            [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+            [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 0, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
 
-// Player and goal positions
-const player = { x: 1, y: 1 }; // Start position
-const goal = { x: 8, y: 8 }; // Goal position
+        // Player and goal positions
+        const player = { x: 1, y: 1 }; // Start position
+        const goal = { x: 8, y: 8 }; // Goal position
 
-// Draw the maze
-function drawMaze() {
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            if (maze[row][col] === 1) {
-                ctx.fillStyle = 'black'; // Wall color
-            } else {
-                ctx.fillStyle = 'white'; // Path color
+        // Draw the maze
+        function drawMaze() {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    if (maze[row][col] === 1) {
+                        ctx.fillStyle = 'black'; // Wall color
+                    } else {
+                        ctx.fillStyle = 'white'; // Path color
+                    }
+                    ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+                }
             }
-            ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+
+            // Draw goal
+            ctx.fillStyle = 'green';
+            ctx.fillRect(goal.x * tileSize, goal.y * tileSize, tileSize, tileSize);
         }
-    }
 
-    // Draw goal
-    ctx.fillStyle = 'green';
-    ctx.fillRect(goal.x * tileSize, goal.y * tileSize, tileSize, tileSize);
-}
+        // Draw the player
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x * tileSize, player.y * tileSize, tileSize, tileSize);
+        }
 
-// Draw the player
-function drawPlayer() {
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(player.x * tileSize, player.y * tileSize, tileSize, tileSize);
-}
+        // Move the player
+        function movePlayer(dx, dy) {
+            const newX = player.x + dx;
+            const newY = player.y + dy;
 
-// Move the player
-function movePlayer(dx, dy) {
-    const newX = player.x + dx;
-    const newY = player.y + dy;
+            // Check for wall collisions
+            if (maze[newY][newX] === 0) {
+                player.x = newX;
+                player.y = newY;
+            }
 
-    // Check for wall collisions
-    if (maze[newY][newX] === 0) {
-        player.x = newX;
-        player.y = newY;
-    }
+            // Check for goal
+            if (player.x === goal.x && player.y === goal.y) {
+                alert('You reached the goal!');
+                resetGame();
+            }
 
-    // Check for goal
-    if (player.x === goal.x && player.y === goal.y) {
-        alert('You reached the goal!');
-        resetGame();
-    }
-}
+            drawGame();
+        }
 
-// Reset game
-function resetGame() {
-    player.x = 1;
-    player.y = 1;
-    drawGame();
-}
+        // Reset game
+        function resetGame() {
+            player.x = 1;
+            player.y = 1;
+            drawGame();
+        }
 
-// Handle keyboard input
-document.addEventListener('keydown', (e) => {
-    switch (e.key) {
-        case 'ArrowUp':
-            movePlayer(0, -1);
-            break;
-        case 'ArrowDown':
-            movePlayer(0, 1);
-            break;
-        case 'ArrowLeft':
-            movePlayer(-1, 0);
-            break;
-        case 'ArrowRight':
-            movePlayer(1, 0);
-            break;
-    }
-    drawGame();
-});
+        // Draw the game
+        function drawGame() {
+            drawMaze();
+            drawPlayer();
+        }
 
-// Draw the game
-function drawGame() {
-    drawMaze();
-    drawPlayer();
-}
-
-// Initialize game
-drawGame();
-
+        // Initialize game
+        drawGame();
     </script>
 </body>
 </html>

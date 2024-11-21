@@ -56,15 +56,15 @@
         const canvas = document.getElementById('maze');
         const ctx = canvas.getContext('2d');
 
-        const tileSize = 20; // Size of each maze tile
-        const rows = 20;
-        const cols = 20;
+        const tileSize = 10; // Size of each maze tile
+        const rows = 40;
+        const cols = 40;
 
         let maze = []; // Dynamic maze array
 
         // Player and goal positions
         const player = { x: 1, y: 1 }; // Start position
-        const goal = { x: 18, y: 18 }; // Goal position
+        const goal = { x: 38, y: 38 }; // Goal position
 
         // Generate the maze using Prim's algorithm
         function generateMaze() {

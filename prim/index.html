@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Generator - Prim's Algorithm</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+        }
+        canvas {
+            display: block;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mazeCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("mazeCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Maze settings
+        const cols = 20;
+        const rows = 20;
+        const cellSize = 30;
+
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+
+        const grid = [];
+        const walls = [];
+
+        class Cell {
+            constructor(col, row) {
+                this.col = col;
+                this.row = row;
+                this.visited = false;
+            }
+
+            draw() {
+                const x = this.col * cellSize;
+                const y = this.row * cellSize;
+
+                if (!this.visited) {
+                    ctx.fillStyle = "#000"; // Unvisited cells appear black
+                    ctx.fillRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
+
+        // Initialize grid
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                grid.push(new Cell(col, row));
+            }
+        }
+
+        // Helper function to get a cell
+        function getCell(col, row) {
+            if (col < 0 || row < 0 || col >= cols || row >= rows) {
+                return null;
+            }
+            return grid[col + row * cols];
+        }
+
+        // Helper function to remove walls between two cells
+        function removeWallBetween(a, b) {
+            const x = a.col - b

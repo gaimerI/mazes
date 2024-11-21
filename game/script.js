@@ -111,9 +111,11 @@ const canvas = document.getElementById('maze');
 
         // Draw the game
         function drawGame() {
-            drawMaze();
-            drawPlayer();
+          ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas
+          drawMaze();
+          drawPlayer();
         }
+
 
         // Initialize game
         generateMaze();

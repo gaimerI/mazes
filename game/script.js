@@ -9,7 +9,7 @@ const canvas = document.getElementById('maze');
 
         // Player and goal positions
         const player = { x: 1, y: 1 }; // Start position
-        const goal = { x: 38, y: 38 }; // Goal position
+        const goal = { x: 37, y: 37 }; // Goal position
 
         // Generate the maze using Prim's algorithm
         function generateMaze() {
